@@ -52,7 +52,7 @@ def gm_stop(request):
 
 
 @api_view(["POST"])
-def register_Player(request):
+def register_player(request):
     """
     Registers Player
     :param request: { id: str, name: str, questions-answers: [(string, string)] }
