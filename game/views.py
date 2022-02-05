@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from . import questions
+from . import storage
 
 
 ##########################################
@@ -93,7 +93,7 @@ def get_questions(request):
     :param request: empty
     :return: {questions: [str]}
     """
-    return Response({'questions': questions.questions}, status=status.HTTP_200_OK)
+    return Response({'questions': storage.questions}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
