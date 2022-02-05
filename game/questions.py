@@ -1,6 +1,7 @@
-questions = ["What is your favourite programming language?",
-             "What is your favourite food?",
-             "What are your favourite hobbies?",
+questions = ["Where are you from?",
              "What is your university?",
-             "What technology makes the world a worse place?",
-             "Where are you from?"]
+             "What are your favourite hobbies?",
+             "What is your favourite food?",
+             "What is your favourite programming language?",
+             "What technology makes the world a worse place?"
+             ]
