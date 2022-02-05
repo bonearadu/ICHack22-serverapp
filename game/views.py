@@ -2,6 +2,9 @@ from django.shortcuts import render
 
 # Create your views here.
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from questions import questions
 
 
 ##########################################
@@ -81,6 +84,16 @@ def player_scan(request):
 ##########################################
 # General endpoints
 ##########################################
+
+
+@api_view(["GET"])
+def get_questions(request):
+    """
+    Get current game score
+    :param request: empty
+    :return: {questions: [str]}
+    """
+    return Response({'questions': questions}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
