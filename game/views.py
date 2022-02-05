@@ -89,7 +89,7 @@ def player_scan(request):
 @api_view(["GET"])
 def get_questions(request):
     """
-    Get current game score
+    Get all questions
     :param request: empty
     :return: {questions: [str]}
     """
