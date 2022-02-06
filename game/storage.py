@@ -56,12 +56,19 @@ class Player:
         if user.answers[index].lower() == answer.lower():
             filtered = filter(lambda target: target.question != index or target.answer != answer, self.target)
             self.target = filtered
-            self.create_next_target()
+            if self.all_tasks_completed():
+                self.create_targets()
             self.score += points_gained_match
             return True
         else:
             self.score += points_gained_miss_match
             return False
+
+    def all_tasks_completed(self):
+        ret = True
+        for task in self.target:
+            ret = ret and task.completed
+        return ret
 
 
 class Target:
