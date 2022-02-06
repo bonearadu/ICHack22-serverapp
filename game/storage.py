@@ -3,6 +3,9 @@ import random
 game_started = False
 game_register = False
 
+register_time = -1
+game_time = -1
+
 points_gained_match = 1
 points_gained_miss_match = -1
 
@@ -75,6 +78,3 @@ all_players = {}
 all_answers = {}
 for i in range(0, len(questions)):
     all_answers[i] = []
-
-
-gm_id = -1
