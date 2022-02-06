@@ -142,9 +142,11 @@ def register_player(request):
     :param request: { uid: str, name: str, answers: [string] }
     :return: status code
     """
-    uid = request.POST.get["uid"]
-    #name = request.POST.get("name", "")
-    answers = request.POST.get("answers", "")
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
+    answers = body_json.get("answers", "")
 
     if uid in storage.all_players:
         raise CustomAPIException("User already created", ErrorCodes.REGISTER_ID_IN_USE)
