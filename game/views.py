@@ -59,13 +59,13 @@ def register_player(request):
     :param request: { uid: str, name: str, answers: [string] }
     :return: status code
     """
-    uid = request.POST.get("uid", "")
-    name = request.POST.get("name", "")
+    uid = request.POST.get["uid"]
+    #name = request.POST.get("name", "")
     answers = request.POST.get("answers", "")
 
     if uid in storage.all_players:
         raise CustomAPIException("User already created", ErrorCodes.REGISTER_ID_IN_USE)
-    storage.Player(uid, name, answers)
+    storage.Player(uid, 'name', answers)
     return Response({'uid': uid}, status=status.HTTP_200_OK)
 
 
@@ -82,8 +82,8 @@ def login_player(request):
         raise CustomAPIException("User not created", ErrorCodes.USER_DOES_NOT_EXIST)
     user = storage.all_players[uid]
     return Response({'uid': uid, 'name': user.name, 'answers': user.answers,
-                     'targets': map(lambda x: (storage.questions[x.question], x.answer), user.target)},
-                    status=status.HTTP_200_OK)
+                     'targets': map(lambda x: (storage.questions[x.question], x.answer), user.target),
+                     'game_started': storage.game_started}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
