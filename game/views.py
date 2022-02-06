@@ -194,6 +194,10 @@ def reset(request):
     storage.all_answers = {}
     for i in range(0, len(storage.questions)):
         storage.all_answers[i] = []
+
+    storage.game_started = False
+    storage.game_register = False
+
     return Response({'ok': 'ok'}, status=status.HTTP_200_OK)
 
 
