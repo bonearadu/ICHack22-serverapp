@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from . import storage
+from common.exception import CustomAPIException, ErrorCodes
 
 
 ##########################################
@@ -55,20 +56,48 @@ def gm_stop(request):
 def register_player(request):
     """
     Registers Player
-    :param request: { id: str, name: str, questions-answers: [(string, string)] }
+    :param request: { uid: str, name: str, answers: [string] }
     :return: status code
     """
-    pass
+    uid = request.POST.get("uid", "")
+    name = request.POST.get("name", "")
+    answers = request.POST.get("answers", "")
+
+    if uid in storage.all_players:
+        raise CustomAPIException("User already created", ErrorCodes.REGISTER_ID_IN_USE)
+    storage.Player(uid, name, answers)
+    return Response({'uid': uid}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def login_player(request):
+    """
+    Registers Player
+    :param request: { uid: str}
+    :return: status code
+    """
+    uid = request.POST.get("uid", "")
+
+    if uid not in storage.all_players:
+        raise CustomAPIException("User not created", ErrorCodes.USER_DOES_NOT_EXIST)
+    user = storage.all_players[uid]
+    return Response({'uid': uid, 'name': user.name, 'answers': user.answers,
+                     'targets': map(lambda x: (storage.questions[x.question], x.answer), user.target)},
+                    status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
 def player_get_target(request):
     """
     Get next target for a player
-    :param request: { id: str }
+    :param request: { uid: str }
     :return: { question: str, expectedAnswer: str }
     """
-    pass
+    uid = request.POST.get("uid", "")
+
+    user = storage.all_players[uid]
+    question, answer = user.create_next_target()
+    return Response({'question': question, 'answer': answer}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -78,7 +107,19 @@ def player_scan(request):
     :param request: { id: str, scannedId: str, question: str, answer: str }
     :return: True if successful; False otherwise
     """
-    pass
+    uid = request.POST.get("uid", "")
+    scannedId = request.POST.get("scannedId", "")
+    question = request.POST.get("question", "")
+    answer = request.POST.get("answer", "")
+
+    uid = '1'
+    user = storage.Player('1', 'r', ['1', '2', 'nu', 'Da', '3', '4'])
+    user.target = [storage.Target(1, 'da')]
+    scannedId = '1'
+    question = 'What is your favourite food?'
+    answer = 'da'
+    user = storage.all_players[uid]
+    return Response({'match': user.verify_answer(question, answer, scannedId), 'scorer': user.score}, status=status.HTTP_200_OK)
 
 
 ##########################################

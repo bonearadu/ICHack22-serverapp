@@ -31,14 +31,14 @@ class Player:
         all_players[uid] = self
 
     def create_next_target(self):
-        rand_index = random.randrange(0, len(questions))
+        rand_index = random.randint(0, len(questions) - 1)
         choice = random.choice(all_answers[rand_index])
-        if self.already_targeted[rand_index] == choice.lower():
+        if choice.lower() not in self.already_targeted[rand_index]:
             self.target.append(Target(rand_index, choice))
             self.already_targeted[rand_index].add(choice.lower())
             return questions[rand_index], choice
         else:
-            self.create_next_target()
+            return self.create_next_target()
 
     def verify_answer(self, question, answer, uid):
         user = all_players[uid]
