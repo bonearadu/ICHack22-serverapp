@@ -1,6 +1,6 @@
 # Create your views here.
 import pika
-from pika.exchange_type import ExchangeType
+from background_task import background
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -27,18 +27,34 @@ def register_gm(request):
     if storage.gm_id != -1:
         return Response({"error": "Game already started."}, status=status.HTTP_400_BAD_REQUEST)
     storage.gm_id = gm_id
+
     return Response()
 
 
 def __amqp_connect():
     connection = pika.BlockingConnection(
         pika.URLParameters(
-            url="amqps://qgiyzrhi:UwJqIh9NWbDnScUqY3LSzQSAAx_VYjam@rattlesnake.rmq.cloudamqp.com/qgiyzrhi")
+            url="amqps://qgiyzrhi:UwJqIh9NWbDnScUqY3LSzQSAAx_VYjam@rattlesnake.rmq.cloudamqp.com/qgiyzrhi"),
+        pika.BasicProperties(content_type="text/plain", content_encoding="utf-8")
     )
     channel = connection.channel()
     channel.exchange_declare("broadcast", exchange_type="fanout")
 
     return connection, channel
+
+
+@background(schedule=60)
+def start():
+    connection, channel = __amqp_connect()
+    channel.basic_publish(exchange="broadcast", routing_key="", body="start")
+    connection.close()
+
+
+@background(schedule=60)
+def stop():
+    connection, channel = __amqp_connect()
+    channel.basic_publish(exchange="broadcast", routing_key="", body="stop")
+    connection.close()
 
 
 @api_view(["POST"])
@@ -61,14 +77,16 @@ def gm_start(request):
     connection, channel = __amqp_connect()
 
     # send start message to players
-    channel.basic_publish(exchange="broadcast", routing_key="", body="start " + countdown)
+    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown " + countdown)
+    start(schedule=countdown)
 
     if gameLength != "":
         # send stop message to players
-        channel.basic_publish(exchange="broadcast", routing_key="", body="stop " + gameLength)
-        # TODO: actually stop game
+        channel.basic_publish(exchange="broadcast", routing_key="", body="countdown " + gameLength)
+        stop(schedule=gameLength)
 
     connection.close()
+    return Response
 
 
 @api_view(["POST"])
@@ -88,10 +106,11 @@ def gm_stop(request):
 
     connection, channel = __amqp_connect()
 
-    channel.basic_publish(exchange="broadcast", routing_key="", body="stop " + countdown)
-    # TODO: actually stop game
+    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown " + countdown)
+    stop(schedule=countdown)
 
     connection.close()
+    return Response()
 
 
 ##########################################
