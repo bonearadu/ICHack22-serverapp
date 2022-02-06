@@ -11,5 +11,5 @@ urlpatterns = [
     path('player_scan/', views.player_scan, name='player_scan'),
     path('get_questions/', views.get_questions, name='get_questions'),
     path('score/', views.score, name='score'),
-
+    path('reset/', views.reset, name='reset'),
 ]

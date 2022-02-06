@@ -148,3 +148,17 @@ def score(request):
     for uid in list(storage.all_players.keys()):
         scores[uid] = storage.all_players[uid].score
     return Response({'scores': scores}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def reset(request):
+    """
+    Get current game score
+    :param request: empty
+    :return: [{ id: str, score: int }]
+    """
+    storage.all_players = {}
+    storage.all_answers = {}
+    for i in range(0, len(storage.questions)):
+        storage.all_answers[i] = []
+    return Response({'ok': 'ok'}, status=status.HTTP_200_OK)
