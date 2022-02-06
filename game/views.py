@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -20,7 +21,14 @@ def register_gm(request):
     :param request: { id: str }
     :return: status code
     """
-    pass
+
+    gm_id = request.POST.get("id", "")
+    if id == "":
+        return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+    if storage.gm_id != -1:
+        return Response({"error": "Game already started."}, status=status.HTTP_400_BAD_REQUEST)
+    storage.gm_id = gm_id
+    return Response()
 
 
 @api_view(["POST"])
@@ -32,7 +40,8 @@ def gm_start(request):
     :param request: { id: str, countdown?: int, gameLength?: int }
     :return: True || error :D
     """
-    pass
+
+    id = request.POST.get("id", "")
 
 
 @api_view(["POST"])
