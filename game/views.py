@@ -245,6 +245,21 @@ def get_questions(request):
     return Response({'questions': storage.questions}, status=status.HTTP_200_OK)
 
 
+@api_view(["POST"])
+def user_score(request):
+    """
+    Get current game score
+    :param request: empty
+    :return: [{ id: str, score: int }]
+    """
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
+
+    return Response({'score': storage.all_players[uid].score}, status=status.HTTP_200_OK)
+
+
 @api_view(["GET"])
 def score(request):
     """
