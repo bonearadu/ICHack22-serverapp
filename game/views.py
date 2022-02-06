@@ -1,5 +1,4 @@
 # Create your views here.
-import pika
 from background_task import background
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -8,126 +7,6 @@ from rest_framework.utils import json
 
 from . import storage
 from common.exception import CustomAPIException, ErrorCodes
-
-
-##########################################
-# Game Master endpoints
-##########################################
-
-
-@api_view(["POST"])
-def register_gm(request):
-    """
-    Registers GM
-    :param request: { id: str }
-    :return: status code
-    """
-
-    body_json = json.loads(request.body.decode("utf-8"))
-
-    gm_id = body_json.get("id", "")
-
-    if id == "":
-        raise CustomAPIException("Game Master ID required.", ErrorCodes.MISSING_ID)
-
-    if storage.gm_id != -1:
-        raise CustomAPIException("Game already started.", ErrorCodes.GAME_STARTED)
-    storage.gm_id = gm_id
-
-    return Response()
-
-
-def __amqp_connect():
-    connection = pika.BlockingConnection(
-        pika.URLParameters(
-            url="amqps://qgiyzrhi:UwJqIh9NWbDnScUqY3LSzQSAAx_VYjam@rattlesnake.rmq.cloudamqp.com/qgiyzrhi")
-    )
-    channel = connection.channel()
-    channel.exchange_declare("broadcast", exchange_type="fanout")
-
-    return connection, channel
-
-
-@background(schedule=60)
-def start():
-    connection, channel = __amqp_connect()
-    print("Broadcasting start message...")
-    channel.basic_publish(exchange="broadcast", routing_key="", body="start")
-    connection.close()
-
-
-@background(schedule=60)
-def stop():
-    connection, channel = __amqp_connect()
-    print("Broadcasting stop message...")
-    channel.basic_publish(exchange="broadcast", routing_key="", body="stop")
-    connection.close()
-
-
-@api_view(["POST"])
-def gm_start(request):
-    """
-    Starts the game if requested by GM
-    - if countdown specified, players will see a countdown till the game starts
-    - if gameLength specified, players will see a timer till the game ends (after it starts)
-    :param request: { id: str, countdown?: int, gameLength?: int }
-    :return: True || error :D
-    """
-
-    body_json = json.loads(request.body.decode("utf-8"))
-
-    gm_id = body_json.get("id", "")
-    countdown = body_json.get("countdown", "0")
-    gameLength = body_json.get("gameLength", "")
-
-    if gm_id == "":
-        raise CustomAPIException("Game Master ID required.", ErrorCodes.MISSING_ID)
-
-    if gm_id != storage.gm_id:
-        raise CustomAPIException("ID does not belong to Game Master.", ErrorCodes.ID_NOT_GM)
-
-    connection, channel = __amqp_connect()
-
-    # send start message to players
-    print("Broadcasting countdown message...")
-    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown {0}".format(countdown))
-    start(schedule=int(countdown))
-
-    if gameLength != "":
-        # send stop message to players
-        print("Broadcasting countndown message...")
-        channel.basic_publish(exchange="broadcast", routing_key="", body="countdown {0}".format(gameLength))
-        stop(schedule=int(gameLength))
-
-    connection.close()
-    return Response()
-
-
-@api_view(["POST"])
-def gm_stop(request):
-    """
-    Stops the game if requested by the GM
-    - if countdown specified, update remaining game time to the countdown time
-    - otherwise, end instantly
-    :param request: { id: str, countdown?: int }
-    :return: True || error :D
-    """
-    body_json = json.loads(request.body.decode("utf-8"))
-
-    gm_id = body_json.get("id", "")
-    countdown = body_json.get("countdown", "0")
-
-    if gm_id == "":
-        raise CustomAPIException("Game Master ID required.", ErrorCodes.MISSING_ID)
-
-    connection, channel = __amqp_connect()
-
-    print("Broadcasting countdown message...")
-    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown {0}".format(countdown))
-    stop(schedule=int(countdown))
-
-    connection.close()
-    return Response()
 
 
 ##########################################
@@ -234,6 +113,33 @@ def player_scan(request):
 ##########################################
 
 
+@api_view(["POST"])
+def start(request):
+    """
+    Starts a new game:
+    - registerTime seconds for registering
+    - gameTime seconds for playing
+    :param request: { id: str, registerTime: int, gameTime: int }
+    :return: status code
+    """
+
+    if storage.game_register or storage.game_started:
+        raise CustomAPIException("Game already started.", ErrorCodes.GAME_STARTED)
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    register_time = int(body_json.get("registerTime", "60"))
+    game_time = int(body_json.get("gameTime", "3600"))
+
+    storage.register_time = register_time
+    storage.game_time = game_time
+    storage.game_register = True
+
+    __start_game(game_time, schedule=register_time)
+
+    return Response({"registerTime": register_time, "gameTime": game_time})
+
+
 @api_view(["GET"])
 def get_questions(request):
     """
@@ -287,3 +193,20 @@ def reset(request):
     for i in range(0, len(storage.questions)):
         storage.all_answers[i] = []
     return Response({'ok': 'ok'}, status=status.HTTP_200_OK)
+
+
+##########################################
+# Utils
+##########################################
+
+
+@background(schedule=60)
+def __start_game(length):
+    storage.game_register = False
+    storage.game_started = True
+    __end_game(schedule=length)
+
+
+@background(schedule=3600)
+def __end_game():
+    storage.game_started = False
