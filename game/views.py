@@ -53,7 +53,7 @@ def login_player(request):
                      'game_started': storage.game_started}, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(["GET"])
 def get_tasks(request):
     """
         Registers Player
@@ -151,7 +151,7 @@ def get_questions(request):
     return Response({'questions': storage.questions}, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(["GET"])
 def user_score(request):
     """
     Get current game score
