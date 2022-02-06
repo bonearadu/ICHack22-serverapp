@@ -170,7 +170,7 @@ def login_player(request):
         raise CustomAPIException("User not created", ErrorCodes.USER_DOES_NOT_EXIST)
     user = storage.all_players[uid]
     return Response({'uid': uid, 'name': user.name, 'answers': user.answers,
-                     'targets': map(lambda x: (storage.questions[x.question], x.answer), user.target),
+                     'targets': map(lambda x: (storage.questions[x.question], x.answer, x.completed), user.target),
                      'game_started': storage.game_started}, status=status.HTTP_200_OK)
 
 
@@ -206,14 +206,9 @@ def player_scan(request):
     question = body_json.get("question", "")
     answer = body_json.get("answer", "")
 
-    uid = '1'
-    user = storage.Player('1', 'r', ['1', '2', 'nu', 'Da', '3', '4'])
-    user.target = [storage.Target(1, 'da')]
-    scannedId = '1'
-    question = 'What is your favourite food?'
-    answer = 'da'
     user = storage.all_players[uid]
-    return Response({'match': user.verify_answer(question, answer, scannedId), 'scorer': user.score}, status=status.HTTP_200_OK)
+    return Response({'match': user.verify_answer(question, answer, scannedId), 'scorer': user.score},
+                    status=status.HTTP_200_OK)
 
 
 ##########################################

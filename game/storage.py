@@ -30,8 +30,15 @@ class Player:
 
         for index in range(0, len(questions)):
             self.already_targeted[index] = set()
-
         all_players[uid] = self
+        self.create_targets()
+
+    def create_targets(self):
+        self.create_next_target()
+        self.create_next_target()
+        self.create_next_target()
+        self.create_next_target()
+        self.create_next_target()
 
     def create_next_target(self):
         rand_index = random.randint(0, len(questions) - 1)
@@ -61,6 +68,7 @@ class Target:
     def __init__(self, question, answer):
         self.question = question
         self.answer = answer
+        self.completed = False
 
 
 all_players = {}
