@@ -175,6 +175,24 @@ def login_player(request):
 
 
 @api_view(["POST"])
+def get_tasks(request):
+    """
+        Registers Player
+        :param request: { uid: str }
+        :return: status code
+    """
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
+
+    if uid not in storage.all_players:
+        raise CustomAPIException("User not created", ErrorCodes.USER_DOES_NOT_EXIST)
+    user = storage.all_players[uid]
+    return Response({'targets': map(lambda x: (storage.questions[x.question], x.answer, x.completed), user.target),
+                     'game_started': storage.game_started}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
 def player_get_target(request):
     """
     Get next target for a player
