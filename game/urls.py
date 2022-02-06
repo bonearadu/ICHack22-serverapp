@@ -2,7 +2,7 @@ from . import views
 from django.urls import path
 
 urlpatterns = [
-    path('start_game/', views.start_game, name='start_game'),
+    path('start/', views.start, name='start'),
     path('register_player/', views.register_player, name='register_player'),
     path('login_player/', views.login_player, name='login_player'),
     path('player_get_target/', views.player_get_target, name='player_get_target'),
