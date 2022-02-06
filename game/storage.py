@@ -67,3 +67,6 @@ all_players = {}
 all_answers = {}
 for i in range(0, len(questions)):
     all_answers[i] = []
+
+
+gm_id = -1

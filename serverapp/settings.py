@@ -31,7 +31,6 @@ DEBUG = not PROD
 
 ALLOWED_HOSTS = ['localhost', 'ichack22-backend.herokuapp.com', '127.0.0.1', 'www.ichack22-backend.herokuapp.com']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'background_task',
     'game'
 ]
 
@@ -76,20 +76,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'serverapp.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'ichack22',
-#         'USER': 'postgres',
-#         'HOST': 'localhost',
-#         'PORT': '5432'
-#     }
-# }
-
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'd2mqmmpqvbpk3r',
+        'USER': 'kyrpqcrxvmufxj',
+        'PASSWORD': '23071a9eae12230f321f748fbe08c0ef319871d244492acdff32ce21b7a19164',
+        'HOST': 'ec2-18-202-156-92.eu-west-1.compute.amazonaws.com',
+        'PORT': '5432'
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -109,7 +108,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -120,7 +118,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
