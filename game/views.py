@@ -75,7 +75,7 @@ def player_get_target(request):
 def player_scan(request):
     """
     Process player scanning another player's tag
-    :param request: { id: str, scannedId: str }
+    :param request: { id: str, scannedId: str, question: str, answer: str }
     :return: True if successful; False otherwise
     """
     pass
@@ -103,4 +103,7 @@ def score(request):
     :param request: empty
     :return: [{ id: str, score: int }]
     """
-    pass
+    scores = {}
+    for uid in list(storage.all_players.keys()):
+        scores[uid] = storage.all_players[uid].score
+    return Response({'scores': scores}, status=status.HTTP_200_OK)
