@@ -28,10 +28,10 @@ def register_gm(request):
     gm_id = body_json.get("id", "")
 
     if id == "":
-        return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+        raise CustomAPIException("Game Master ID required.", ErrorCodes.MISSING_ID)
 
     if storage.gm_id != -1:
-        return Response({"error": "Game already started."}, status=status.HTTP_400_BAD_REQUEST)
+        raise CustomAPIException("Game already started.", ErrorCodes.GAME_STARTED)
     storage.gm_id = gm_id
 
     return Response()
@@ -40,8 +40,7 @@ def register_gm(request):
 def __amqp_connect():
     connection = pika.BlockingConnection(
         pika.URLParameters(
-            url="amqps://qgiyzrhi:UwJqIh9NWbDnScUqY3LSzQSAAx_VYjam@rattlesnake.rmq.cloudamqp.com/qgiyzrhi"),
-        pika.BasicProperties(content_type="text/plain", content_encoding="utf-8")
+            url="amqps://qgiyzrhi:UwJqIh9NWbDnScUqY3LSzQSAAx_VYjam@rattlesnake.rmq.cloudamqp.com/qgiyzrhi")
     )
     channel = connection.channel()
     channel.exchange_declare("broadcast", exchange_type="fanout")
@@ -52,6 +51,7 @@ def __amqp_connect():
 @background(schedule=60)
 def start():
     connection, channel = __amqp_connect()
+    print("Broadcasting start message...")
     channel.basic_publish(exchange="broadcast", routing_key="", body="start")
     connection.close()
 
@@ -59,6 +59,7 @@ def start():
 @background(schedule=60)
 def stop():
     connection, channel = __amqp_connect()
+    print("Broadcasting stop message...")
     channel.basic_publish(exchange="broadcast", routing_key="", body="stop")
     connection.close()
 
@@ -80,21 +81,26 @@ def gm_start(request):
     gameLength = body_json.get("gameLength", "")
 
     if gm_id == "":
-        return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+        raise CustomAPIException("Game Master ID required.", ErrorCodes.MISSING_ID)
+
+    if gm_id != storage.gm_id:
+        raise CustomAPIException("ID does not belong to Game Master.", ErrorCodes.ID_NOT_GM)
 
     connection, channel = __amqp_connect()
 
     # send start message to players
-    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown " + countdown)
-    start(schedule=countdown)
+    print("Broadcasting countdown message...")
+    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown {0}".format(countdown))
+    start(schedule=int(countdown))
 
     if gameLength != "":
         # send stop message to players
-        channel.basic_publish(exchange="broadcast", routing_key="", body="countdown " + gameLength)
-        stop(schedule=gameLength)
+        print("Broadcasting countndown message...")
+        channel.basic_publish(exchange="broadcast", routing_key="", body="countdown {0}".format(gameLength))
+        stop(schedule=int(gameLength))
 
     connection.close()
-    return Response
+    return Response()
 
 
 @api_view(["POST"])
@@ -112,12 +118,13 @@ def gm_stop(request):
     countdown = body_json.get("countdown", "0")
 
     if gm_id == "":
-        return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+        raise CustomAPIException("Game Master ID required.", ErrorCodes.MISSING_ID)
 
     connection, channel = __amqp_connect()
 
-    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown " + countdown)
-    stop(schedule=countdown)
+    print("Broadcasting countdown message...")
+    channel.basic_publish(exchange="broadcast", routing_key="", body="countdown {0}".format(countdown))
+    stop(schedule=int(countdown))
 
     connection.close()
     return Response()
