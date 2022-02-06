@@ -131,6 +131,8 @@ def start(request):
     register_time = int(body_json.get("registerTime", "60"))
     game_time = int(body_json.get("gameTime", "3600"))
 
+    print("Starting register...")
+
     storage.register_time = register_time
     storage.game_time = game_time
     storage.game_register = True
@@ -202,6 +204,7 @@ def reset(request):
 
 @background(schedule=60)
 def __start_game(length):
+    print("Starting game...")
     storage.game_register = False
     storage.game_started = True
     __end_game(schedule=length)
@@ -209,4 +212,5 @@ def __start_game(length):
 
 @background(schedule=3600)
 def __end_game():
+    print("Stopping game...")
     storage.game_started = False

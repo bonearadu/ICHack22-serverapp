@@ -81,12 +81,9 @@ WSGI_APPLICATION = 'serverapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'd2mqmmpqvbpk3r',
-        'USER': 'kyrpqcrxvmufxj',
-        'PASSWORD': '23071a9eae12230f321f748fbe08c0ef319871d244492acdff32ce21b7a19164',
-        'HOST': 'ec2-18-202-156-92.eu-west-1.compute.amazonaws.com',
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase', # This is where you put the name of the db file.
+                 # If one doesn't exist, it will be created at migration time.
     }
 }
 
