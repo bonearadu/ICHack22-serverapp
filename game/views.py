@@ -1,3 +1,4 @@
+from django.core.exceptions import BadRequest
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -41,7 +42,22 @@ def gm_start(request):
     :return: True || error :D
     """
 
-    id = request.POST.get("id", "")
+    gm_id = request.POST.get("id", "")
+    countdown = request.POST.get("countdown", "")
+    gameLength = request.POST.get("gameLength", "")
+
+    if gm_id == "":
+        return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if countdown != "":
+        # send countdown message to players
+        pass
+
+    # send start message to players
+
+    if gameLength != "":
+        # send gameLength message to players
+        pass
 
 
 @api_view(["POST"])
@@ -53,7 +69,17 @@ def gm_stop(request):
     :param request: { id: str, countdown?: int }
     :return: True || error :D
     """
-    pass
+    gm_id = request.POST.get("id", "")
+    countdown = request.POST.get("countdown", "")
+
+    if gm_id == "":
+        return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if countdown != "":
+        # stop game in countdown seconds ...???
+        pass
+
+    # send stop message to players
 
 
 ##########################################
