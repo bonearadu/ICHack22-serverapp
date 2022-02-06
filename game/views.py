@@ -4,6 +4,8 @@ from background_task import background
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.utils import json
+
 from . import storage
 from common.exception import CustomAPIException, ErrorCodes
 
@@ -21,9 +23,13 @@ def register_gm(request):
     :return: status code
     """
 
-    gm_id = request.POST.get("id", "")
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    gm_id = body_json.get("id", "")
+
     if id == "":
         return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
+
     if storage.gm_id != -1:
         return Response({"error": "Game already started."}, status=status.HTTP_400_BAD_REQUEST)
     storage.gm_id = gm_id
@@ -67,9 +73,11 @@ def gm_start(request):
     :return: True || error :D
     """
 
-    gm_id = request.POST.get("id", "")
-    countdown = request.POST.get("countdown", "0")
-    gameLength = request.POST.get("gameLength", "")
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    gm_id = body_json.get("id", "")
+    countdown = body_json.get("countdown", "0")
+    gameLength = body_json.get("gameLength", "")
 
     if gm_id == "":
         return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -98,8 +106,10 @@ def gm_stop(request):
     :param request: { id: str, countdown?: int }
     :return: True || error :D
     """
-    gm_id = request.POST.get("id", "")
-    countdown = request.POST.get("countdown", "0")
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    gm_id = body_json.get("id", "")
+    countdown = body_json.get("countdown", "0")
 
     if gm_id == "":
         return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -125,9 +135,15 @@ def register_player(request):
     :param request: { uid: str, name: str, answers: [string] }
     :return: status code
     """
-    uid = request.POST.get("uid", "")
-    name = request.POST.get("name", "")
-    answers = request.POST.get("answers", "")
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
+    name = body_json.get("name", "")
+    answers = body_json.get("answers", "")
+
+    if uid == "":
+        raise CustomAPIException("User ID required", ErrorCodes.REGISTER_ID_IN_USE)
 
     if uid in storage.all_players:
         raise CustomAPIException("User already created", ErrorCodes.REGISTER_ID_IN_USE)
@@ -139,10 +155,13 @@ def register_player(request):
 def login_player(request):
     """
     Registers Player
-    :param request: { uid: str}
+    :param request: { uid: str }
     :return: status code
     """
-    uid = request.POST.get("uid", "")
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
 
     if uid not in storage.all_players:
         raise CustomAPIException("User not created", ErrorCodes.USER_DOES_NOT_EXIST)
@@ -159,7 +178,10 @@ def player_get_target(request):
     :param request: { uid: str }
     :return: { question: str, expectedAnswer: str }
     """
-    uid = request.POST.get("uid", "")
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
 
     user = storage.all_players[uid]
     question, answer = user.create_next_target()
@@ -173,10 +195,13 @@ def player_scan(request):
     :param request: { id: str, scannedId: str, question: str, answer: str }
     :return: True if successful; False otherwise
     """
-    uid = request.POST.get("uid", "")
-    scannedId = request.POST.get("scannedId", "")
-    question = request.POST.get("question", "")
-    answer = request.POST.get("answer", "")
+
+    body_json = json.loads(request.body.decode("utf-8"))
+
+    uid = body_json.get("uid", "")
+    scannedId = body_json.get("scannedId", "")
+    question = body_json.get("question", "")
+    answer = body_json.get("answer", "")
 
     uid = '1'
     user = storage.Player('1', 'r', ['1', '2', 'nu', 'Da', '3', '4'])
@@ -200,6 +225,7 @@ def get_questions(request):
     :param request: empty
     :return: {questions: [str]}
     """
+
     return Response({'questions': storage.questions}, status=status.HTTP_200_OK)
 
 
@@ -210,6 +236,7 @@ def score(request):
     :param request: empty
     :return: [{ id: str, score: int }]
     """
+
     scores = {}
     for uid in list(storage.all_players.keys()):
         scores[uid] = storage.all_players[uid].score
@@ -223,6 +250,7 @@ def reset(request):
     :param request: empty
     :return: [{ id: str, score: int }]
     """
+
     storage.all_players = {}
     storage.all_answers = {}
     for i in range(0, len(storage.questions)):
