@@ -1,4 +1,6 @@
 # Create your views here.
+import pika
+from pika.exchange_type import ExchangeType
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,6 +30,17 @@ def register_gm(request):
     return Response()
 
 
+def __amqp_connect():
+    connection = pika.BlockingConnection(
+        pika.URLParameters(
+            url="amqps://qgiyzrhi:UwJqIh9NWbDnScUqY3LSzQSAAx_VYjam@rattlesnake.rmq.cloudamqp.com/qgiyzrhi")
+    )
+    channel = connection.channel()
+    channel.exchange_declare("broadcast", exchange_type="fanout")
+
+    return connection, channel
+
+
 @api_view(["POST"])
 def gm_start(request):
     """
@@ -39,21 +52,23 @@ def gm_start(request):
     """
 
     gm_id = request.POST.get("id", "")
-    countdown = request.POST.get("countdown", "")
+    countdown = request.POST.get("countdown", "0")
     gameLength = request.POST.get("gameLength", "")
 
     if gm_id == "":
         return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    if countdown != "":
-        # send countdown message to players
-        pass
+    connection, channel = __amqp_connect()
 
     # send start message to players
+    channel.basic_publish(exchange="broadcast", routing_key="", body="start " + countdown)
 
     if gameLength != "":
-        # send gameLength message to players
-        pass
+        # send stop message to players
+        channel.basic_publish(exchange="broadcast", routing_key="", body="stop " + gameLength)
+        # TODO: actually stop game
+
+    connection.close()
 
 
 @api_view(["POST"])
@@ -66,16 +81,17 @@ def gm_stop(request):
     :return: True || error :D
     """
     gm_id = request.POST.get("id", "")
-    countdown = request.POST.get("countdown", "")
+    countdown = request.POST.get("countdown", "0")
 
     if gm_id == "":
         return Response({"error": "Game Master ID required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    if countdown != "":
-        # stop game in countdown seconds ...???
-        pass
+    connection, channel = __amqp_connect()
 
-    # send stop message to players
+    channel.basic_publish(exchange="broadcast", routing_key="", body="stop " + countdown)
+    # TODO: actually stop game
+
+    connection.close()
 
 
 ##########################################
