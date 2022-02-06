@@ -1,5 +1,8 @@
 import random
 
+game_started = False
+game_register = False
+
 points_gained_match = 1
 points_gained_miss_match = -1
 
